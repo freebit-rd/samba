@@ -55,6 +55,12 @@ const char *cluster_support_features(void)
 	return v;
 }
 
+/* takehi add */
+const char *lp__ctdbd_socket(void)
+{
+	return NULL;
+}
+
 const char *lp_ctdbd_socket(void)
 {
 	const char *ret;

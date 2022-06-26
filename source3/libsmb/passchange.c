@@ -33,7 +33,7 @@
 NTSTATUS remote_password_change(const char *remote_machine,
 				const char *domain, const char *user_name,
 				const char *old_passwd, const char *new_passwd,
-				char **err_str)
+				uint16_t port, char **err_str)
 {
 	struct cli_state *cli = NULL;
 	struct cli_credentials *creds = NULL;
@@ -43,7 +43,7 @@ NTSTATUS remote_password_change(const char *remote_machine,
 
 	*err_str = NULL;
 
-	result = cli_connect_nb(remote_machine, NULL, 0, 0x20, NULL,
+	result = cli_connect_nb(remote_machine, NULL, port, 0x20, NULL,
 				SMB_SIGNING_IPC_DEFAULT, 0, &cli);
 	if (!NT_STATUS_IS_OK(result)) {
 		if (NT_STATUS_EQUAL(result, NT_STATUS_NOT_SUPPORTED)) {

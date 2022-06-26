@@ -1049,6 +1049,6 @@ NTSTATUS fill_quota_buffer(TALLOC_CTX *mem_ctx,
 NTSTATUS remote_password_change(const char *remote_machine,
 				const char *domain, const char *user_name,
 				const char *old_passwd, const char *new_passwd,
-				char **err_str);
+				uint16_t port, char **err_str);
 
 #endif /* _LIBSMB_PROTO_H_ */

@@ -33,6 +33,30 @@
  Add the account-policies below the sambaDomain object to LDAP,
 *********************************************************************/
 
+/* takehi add */
+const char *get_account_policy_attr(enum pdb_policy_type type)
+{
+	return NULL;
+}
+
+/* takehi add */
+bool account_policy_get_default(enum pdb_policy_type type, uint32_t *val)
+{
+	return False;
+}
+
+/* takehi add */
+const char *decode_account_policy_name(enum pdb_policy_type type)
+{
+	return NULL;
+}
+
+/* takehi add */
+int algorithmic_rid_base(void)
+{
+	return 0;
+}
+
 static NTSTATUS add_new_domain_account_policies(struct smbldap_state *ldap_state,
 						const char *domain_name)
 {

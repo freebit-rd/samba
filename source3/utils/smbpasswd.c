@@ -40,6 +40,8 @@ static bool stdin_passwd_get = False;
 static fstring user_name;
 static char *new_passwd = NULL;
 static const char *remote_machine = NULL;
+static uint16_t remote_port = 445;
+static fstring req_domain;
 
 static fstring ldap_secret;
 
@@ -98,7 +100,7 @@ static int process_options(int argc, char **argv, int local_flags)
 
 	user_name[0] = '\0';
 
-	while ((ch = getopt(argc, argv, "c:axdehminjr:sw:R:D:U:LWS:")) != EOF) {
+	while ((ch = getopt(argc, argv, "c:axd:ehminjr:sw:R:D:U:LWS:p:")) != EOF) {
 		switch(ch) {
 		case 'L':
 			if (getuid() != 0) {
@@ -118,10 +120,12 @@ static int process_options(int argc, char **argv, int local_flags)
 			local_flags |= LOCAL_DELETE_USER;
 			local_flags &= ~LOCAL_SET_PASSWORD;
 			break;
+#if 0
 		case 'd':
 			local_flags |= LOCAL_DISABLE_USER;
 			local_flags &= ~LOCAL_SET_PASSWORD;
 			break;
+#endif
 		case 'e':
 			local_flags |= LOCAL_ENABLE_USER;
 			local_flags &= ~LOCAL_SET_PASSWORD;
@@ -168,6 +172,12 @@ static int process_options(int argc, char **argv, int local_flags)
 		case 'W':
 			local_flags |= LOCAL_SET_LDAP_ADMIN_PW;
 			*ldap_secret = '\0';
+			break;
+		case 'p':
+			remote_port = strtoul(optarg, NULL, 0);
+			break;
+		case 'd':
+			fstrcpy(req_domain, optarg);
 			break;
 		}
 		case 'h':
@@ -249,7 +259,7 @@ static char *prompt_for_new_password(bool stdin_get)
 static NTSTATUS password_change(const char *remote_mach,
 				const char *domain, const char *username,
 				const char *old_passwd, const char *new_pw,
-				int local_flags)
+				uint16_t port, int local_flags)
 {
 	NTSTATUS ret;
 	char *err_str = NULL;
@@ -265,7 +275,7 @@ static NTSTATUS password_change(const char *remote_mach,
 		}
 		ret = remote_password_change(remote_mach,
 					     domain, username,
-					     old_passwd, new_pw, &err_str);
+					     old_passwd, new_pw, port, &err_str);
 	} else {
 		ret = local_password_change(username, local_flags, new_pw,
 					    &err_str, &msg_str);
@@ -475,7 +485,7 @@ static int process_root(int local_flags)
 	if (!NT_STATUS_IS_OK(password_change(remote_machine,
 					     NULL, user_name,
 					     old_passwd, new_passwd,
-					     local_flags))) {
+					     remote_port, local_flags))) {
 		result = 1;
 		goto done;
 	} 
@@ -554,6 +564,7 @@ static int process_nonroot(int local_flags)
 		domain = user_name;
 	}
 
+#if 0
 	/*
 	 * A non-root user is always setting a password
 	 * via a remote machine (even if that machine is
@@ -561,7 +572,9 @@ static int process_nonroot(int local_flags)
 	 */	
 
 	load_interfaces(); /* Delayed from main() */
+#endif
 
+#if 0
 	if (remote_machine != NULL) {
 		if (!is_ipaddress(remote_machine)) {
 			domain = remote_machine;
@@ -575,6 +588,7 @@ static int process_nonroot(int local_flags)
 		 */
 		domain = get_global_sam_name();
 	}
+#endif
 
 	old_pw = get_pass("Old SMB password:",stdin_passwd_get);
 	if (old_pw == NULL) {
@@ -594,8 +608,8 @@ static int process_nonroot(int local_flags)
 	}
 
 	if (!NT_STATUS_IS_OK(password_change(remote_machine,
-					     domain, username,
-					     old_pw, new_pw, 0))) {
+					     req_domain, username,
+					     old_pw, new_pw, remote_port, 0))) {
 		result = 1;
 		goto done;
 	}
