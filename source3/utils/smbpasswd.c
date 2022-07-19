@@ -538,6 +538,7 @@ static int process_nonroot(int local_flags)
 	const char *username = user_name;
 	const char *domain = NULL;
 	char *p = NULL;
+	NTSTATUS retval;
 
 	if (local_flags & ~(LOCAL_AM_ROOT | LOCAL_SET_PASSWORD)) {
 		/* Extra flags that we can't honor non-root */
@@ -607,10 +608,11 @@ static int process_nonroot(int local_flags)
 		exit(1);
 	}
 
-	if (!NT_STATUS_IS_OK(password_change(remote_machine,
-					     req_domain, username,
-					     old_pw, new_pw, remote_port, 0))) {
-		result = 1;
+	retval = password_change(remote_machine, req_domain, username,
+							old_pw, new_pw, remote_port, 0);
+	if (!NT_STATUS_IS_OK(retval)) {
+		fprintf(stderr, "failed password_change %08x.\n", NT_STATUS_V(retval));
+		result = NT_STATUS_V(retval) & 0xFF;
 		goto done;
 	}
 
